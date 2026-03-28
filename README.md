@@ -102,7 +102,6 @@ Rulează periodic:
 * la 2 sec → citește senzorii
 ---
 ## 🔹 Avantajele proiectului
-
 ✔️ Detectare automată senzor
 ✔️ Interfață grafică clară
 ✔️ Consum redus (fără delay excesiv)
