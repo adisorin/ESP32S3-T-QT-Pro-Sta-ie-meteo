@@ -38,48 +38,34 @@ Datele sunt afișate pe un ecran TFT de 128x128 pixeli.
 * Ora este preluată de pe serverul NTP (`pool.ntp.org`)
 * Se aplică fusul orar pentru România (EET/EEST)
 * Afișare în format: `HH:MM:SS`
-
 ---
-
 ### 🌡️ Citire temperatură și umiditate
-
 * Detectare automată a senzorului:
-
   * Dacă există SHT31 → îl folosește
   * Dacă nu → folosește DHT11
 
 #### ✔️ Afișare:
-
 * Temperatură în °C
 * Umiditate în %
 
 #### ⚠️ Alerte:
-
 * Temperatură:
-
   * <18°C sau >26°C → avertizare
+    
 * Umiditate:
-
   * <30% sau >60% → avertizare
-
 ---
-
 ### 📶 Indicator semnal WiFi
-
 * Afișează nivelul semnalului în 5 bare
+* 
 * Calcul bazat pe RSSI:
-
   * semnal puternic → 5 bare
   * semnal slab → 1 bară
-
 ---
-
 ### ❌ Gestionare erori senzori
 
 * Dacă citirea e invalidă:
-
   * afișează alternativ:
-
     * „SHT ERR”
     * „DHT ERR”
 
@@ -88,44 +74,33 @@ Datele sunt afișate pe un ecran TFT de 128x128 pixeli.
 ## 🔹 Interfața grafică
 
 Ecranul este organizat astfel:
-
 * Titlu: „Temp & Humid”
 * Centru: temperatură + umiditate
 * Jos: ceas digital
 * Dreapta sus: semnal WiFi
 
 Culori utilizate:
-
 * Verde → valori OK
 * Roșu → avertizare
 * Cyan → umiditate
 * Galben → ceas
-
 ---
-
 ## 🔹 Structura programului
 
 ### setup()
-
 * Inițializează:
-
   * ecranul TFT
   * senzorii
   * WiFi
 * Detectează automat senzorul activ
-
 ---
-
 ### loop()
 
 Rulează periodic:
-
 * la 10 sec → verifică WiFi
 * la 1 sec → actualizează ceasul
 * la 2 sec → citește senzorii
-
 ---
-
 ## 🔹 Avantajele proiectului
 
 ✔️ Detectare automată senzor
@@ -133,16 +108,12 @@ Rulează periodic:
 ✔️ Consum redus (fără delay excesiv)
 ✔️ Conectivitate WiFi
 ✔️ Extensibil (poți adăuga IoT, MQTT, etc.)
-
 ---
-
 ## 🔹 Posibile îmbunătățiri
-
 * Trimitere date în cloud (ex: Thingspeak, MQTT)
 * Aplicație mobilă
 * Istoric temperatură
 * Alertă prin notificări
 * Baterie + mod low power
-
 ---
 
