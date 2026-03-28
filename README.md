@@ -121,4 +121,4 @@ Rulează periodic:
 * Alertă prin notificări
 * Baterie + mod low power
 ---
-
+Autor: Sorinescu Adrian
