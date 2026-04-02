@@ -1,6 +1,9 @@
 # ESP32S3 T-QT-Pro Statie meteo.
 ![20260328_094313](https://github.com/user-attachments/assets/69ca6b0b-4a11-4b86-a2df-0b82cedec61f)
 
+# T-QT-Pro-DHT11-SHT31-v5
+Fără internet și oră. 
+
 
 # 📊 Prezentare proiect – Stație meteo cu ESP32 T-QT Pro
 
