@@ -6,7 +6,8 @@ Fără internet și oră.
 ![20260402_115254](https://github.com/user-attachments/assets/9790fe6d-fdee-49cb-b160-9c89b46e55c1)
 
 # T-QT-Pro-DHT11-SHT31-v7
-![Captură de ecran 2026-04-04 105949](https://github.com/user-attachments/assets/8cba7afb-4e35-4c88-812d-32dd9b711696)
+<img width="506" height="895" alt="image" src="https://github.com/user-attachments/assets/3e678dee-e149-4e61-ad97-49256762d0ee" />
+
 
 
 
