@@ -25,124 +25,373 @@ Fără internet și oră.
 
 
 
-# 📊 Prezentare proiect – Stație meteo cu ESP32 T-QT Pro
+# ESP32 Climate Station + Web Dashboard
 
-## 🔹 Introducere
-Acest proiect utilizează placa **ESP32 T-QT Pro** pentru a crea o mini stație meteo inteligentă, capabilă să afișeze în timp real:
-* temperatura 🌡️
-* umiditatea 💧
-* ora exactă 🕒
-* nivelul semnalului WiFi 📶
-Datele sunt afișate pe un ecran TFT de 128x128 pixeli.
+## Platformă IoT Open Source pentru monitorizare ambientală și interfață web interactivă
+
+Arduino IDE
+Espressif Systems
+Arduino_GFX_Library
+
+Acest proiect transformă un microcontroller ESP32-S3 într-o stație climatică inteligentă, cu:
+
+* afișaj TFT color GC9107
+* server web integrat
+* hotspot WiFi autonom
+* captive portal
+* senzori multipli de temperatură / umiditate / presiune / calitate aer
+* jocuri web integrate
+* monitorizare live prin browser
+* interfață optimizată pentru telefon mobil
+
+Proiectul este construit pentru:
+
+* dezvoltatori embedded
+* makers
+* pasionați IoT
+* automatizări smart home
+* dashboard-uri locale fără cloud
+
 ---
-### Hardware:
-* ESP32 T-QT Pro
-* Display TFT GC9107 (128x128)
-* Senzor temperatură și umiditate:
-  * DHT11 temperature and humidity sensor
-  * SHT31 temperature and humidity sensor
-* Conexiune WiFi
 
-### Software / Biblioteci:
-* Arduino IDE
+# Ce face proiectul
+
+## Monitorizare climatică în timp real
+
+Sistemul citește și afișează:
+
+* temperatură
+* umiditate
+* presiune atmosferică
+* rezistență gaz / calitate aer
+* temperatură CPU ESP32
+* tensiune alimentare
+
+Compatibil cu:
+
+* DHT11
+* SHT31
+* BME680
+
+Sistemul detectează automat senzorii disponibili și schimbă modul de funcționare fără restart.
+
+---
+
+# Arhitectura proiectului
+
+## Hardware
+
+### Microcontroller
+
+* ESP32-S3
+
+### Display
+
+* TFT GC9107 128x128
+
+### Comunicare
+
+* SPI pentru display
+* I2C pentru senzori
+* WiFi Access Point + STA
+
+### Senzori
+
+* DHT11
+* SHT31
+* BME680
+
+---
+
+# Funcționalități principale
+
+## 1. UI TFT în timp real
+
+Display-ul afișează:
+
+* temperatură
+* umiditate
+* presiune atmosferică
+* calitate aer
+* stări de alertă
+* erori senzori
+* sistem info
+
+Sistemul evită flicker-ul prin redraw parțial și update inteligent.
+
+---
+
+## 2. Captive Portal WiFi
+
+ESP32 creează propriul hotspot:
+
+```txt
+MY HOME: 24°C OK 45% H OK
+```
+
+SSID-ul se actualizează dinamic folosind datele senzorilor.
+
+Avantaje:
+
+* vezi temperatura direct din lista WiFi
+* acces fără aplicație
+* acces instant din browser
+
+---
+
+## 3. Web Dashboard Responsive
+
+Interfața web include:
+
+* valori live
+* grafic temperatură / umiditate
+* clasificare meteo
+* analiză presiune
+* interpretare calitate aer
+* update automat AJAX
+* suport touch/mobile
+
+---
+
+## 4. Jocuri integrate
+
+### Snake
+
+* control touch
+* control tastatură
+* animație fluidă
+
+### Minesweeper
+
+* grid dinamic
+* flood reveal
+* flag system
+* verificare win/lose
+
+---
+
+## 5. Digital Clock sincronizat NTP
+
+ESP32:
+
+* se conectează la router
+* sincronizează timpul prin NTP
+* afișează ceas live în browser
+
+---
+
+# Caracteristici software avansate
+
+## Auto-detect senzori
+
+Codul verifică permanent:
+
+* dacă senzorii apar/dispar
+* dacă există erori de comunicație
+* dacă trebuie fallback pe alt senzor
+
+---
+
+## Sistem de alerte inteligente
+
+Alertă pentru:
+
+* temperatură prea mare/mică
+* umiditate necorespunzătoare
+* erori hardware
+* calitate aer periculoasă
+
+Blink-ul are viteză adaptivă:
+
+* normal
+* warning
+* critical
+
+---
+
+## Corecție atmosferică
+
+Presiunea este corectată în funcție de altitudine:
+
+P=P_0\left(1-\frac{h}{44330}\right)^{-5.255}
+
+Permite calibrare pentru diferite locații.
+
+---
+
+# Endpoint-uri API
+
+## `/data`
+
+Returnează:
+
+```json
+{
+  "temp": 24.5,
+  "hum": 45.2,
+  "pres": 1018.3,
+  "gas": 180.2
+}
+```
+
+Perfect pentru:
+
+* Home Assistant
+* Node-RED
+* Grafana
+* aplicații mobile
+* integrare MQTT
+
+---
+
+## `/system-data`
+
+Expose:
+
+* RAM
+* CPU
+* Flash
+* senzori activi
+* clienți conectați
+* temperatură CPU
+
+---
+
+# Tehnologii utilizate
+
+## Backend Embedded
+
+* C++
+* Arduino Framework
+* ESP32 SDK
+
+## Frontend
+
+* HTML5
+* CSS3
+* Vanilla JavaScript
+* Canvas API
+
+## Librării
+
+* WiFi.h
+* WebServer.h
 * Arduino_GFX_Library
-* WiFi + WiFiMulti
-* DHT library
-* Adafruit SHT31
-* NTP (Network Time Protocol)
----
-### 📡 Conectare WiFi automată
-* Se încearcă conectarea la mai multe rețele salvate
-* Afișează statusul pe ecran:
-  * „Connecting WiFi…”
-  * „WiFi Connected”
-  * sau eroare („WRONG WIFI”)
----
-### 🕒 Sincronizare automată a orei
-* Ora este preluată de pe serverul NTP (`pool.ntp.org`)
-* Se aplică fusul orar pentru România (EET/EEST)
-* Afișare în format: `HH:MM:SS`
----
-### 🌡️ Citire temperatură și umiditate
-* Detectare automată a senzorului:
-  * Dacă există SHT31 → îl folosește
-  * Dacă nu → folosește DHT11
-
-#### ✔️ Afișare:
-* Temperatură în °C
-* Umiditate în %
-
-#### ⚠️ Alerte:
-* Temperatură:
-  * <18°C sau >26°C → avertizare
-    
-* Umiditate:
-  * <30% sau >60% → avertizare
----
-### 📶 Indicator semnal WiFi
-* Afișează nivelul semnalului în 5 bare
-* 
-* Calcul bazat pe RSSI:
-  * semnal puternic → 5 bare
-  * semnal slab → 1 bară
----
-### ❌ Gestionare erori senzori
-
-* Dacă citirea e invalidă:
-  * afișează alternativ:
-    * „SHT ERR”
-    * „DHT ERR”
+* Adafruit_BME680
+* Adafruit_SHT31
 
 ---
 
-## 🔹 Interfața grafică
+# Optimizări importante
 
-Ecranul este organizat astfel:
-* Titlu: „Temp & Humid”
-* Centru: temperatură + umiditate
-* Jos: ceas digital
-* Dreapta sus: semnal WiFi
+## Performanță TFT
 
-Culori utilizate:
-* Verde → valori OK
-* Roșu → avertizare
-* Cyan → umiditate
-* Galben → ceas
----
-## 🔹 Structura programului
+* redraw local
+* fără refresh complet
+* consum redus CPU
 
-### setup()
-* Inițializează:
-  * ecranul TFT
-  * senzorii
-  * WiFi
-* Detectează automat senzorul activ
----
-### loop()
+## Consum memorie
 
-Rulează periodic:
-* la 10 sec → verifică WiFi
-* la 1 sec → actualizează ceasul
-* la 2 sec → citește senzorii
----
-## 🔹 Avantajele proiectului
+* HTML servit din PROGMEM style strings
+* fără framework-uri grele
 
-✔️ Detectare automată senzor
+## Stabilitate
 
-✔️ Interfață grafică clară
-
-✔️ Consum redus (fără delay excesiv)
-
-✔️ Conectivitate WiFi
-
-✔️ Extensibil (poți adăuga IoT, MQTT, etc.)
+* watchdog logic
+* reconnect senzori
+* fallback automat
 
 ---
-## 🔹 Posibile îmbunătățiri
-* Trimitere date în cloud (ex: Thingspeak, MQTT)
-* Aplicație mobilă
-* Istoric temperatură
-* Alertă prin notificări
-* Baterie + mod low power
+
+# De ce este interesant pentru dezvoltatori
+
+Acest proiect demonstrează cum un ESP32 poate deveni:
+
+* server web autonom
+* sistem embedded realtime
+* UI device
+* hotspot inteligent
+* mini platformă IoT
+* sistem multimedia lightweight
+
+Totul fără:
+
+* Raspberry Pi
+* Linux
+* cloud
+* backend extern
+
 ---
+
+# Posibile extensii
+
+## Smart Home
+
+* relee
+* automatizări HVAC
+* ventilare inteligentă
+
+## IoT
+
+* MQTT
+* Home Assistant
+* Grafana
+* InfluxDB
+
+## UI
+
+* dark/light themes
+* WebSocket live
+* PWA installable
+
+## Hardware
+
+* baterie Li-Ion
+* solar charging
+* senzori CO2
+* touchscreen
+
+---
+
+# Cui se adresează
+
+* programatori embedded
+* dezvoltatori IoT
+* pasionați ESP32
+* makers
+* hobby electronics
+* smart home builders
+
+---
+
+# Licență
+
+Proiectul folosește licența:
+
+MIT License
+
+Permite:
+
+* utilizare comercială
+* modificare
+* distribuție
+* integrare în alte produse
+
+---
+
+# Concluzie
+
+Acest proiect este mai mult decât un simplu termometru IoT.
+
+Este o demonstrație completă de:
+
+* embedded systems
+* web development
+* realtime UI
+* captive portal networking
+* senzori inteligenți
+* optimizare hardware/software
+
+Totul rulând pe un singur ESP32-S3.
+
 Autor: Sorinescu Adrian
