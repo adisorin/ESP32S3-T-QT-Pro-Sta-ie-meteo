@@ -23,7 +23,13 @@ Fără internet și oră.
 
 ![WhatsApp Image 2026-04-12 at 17 03 46-3](https://github.com/user-attachments/assets/480e628b-97ab-4649-81b8-ada616ede618)
 
+<img width="506" height="1004" alt="image" src="https://github.com/user-attachments/assets/af52f093-8db3-4c4b-93e5-7b12e7befd53" />
 
+<img width="508" height="1007" alt="image" src="https://github.com/user-attachments/assets/30112b5a-9f4a-4869-aa9e-038413efbaf4" />
+
+<img width="509" height="1008" alt="image" src="https://github.com/user-attachments/assets/9b6b0797-cbe9-418b-88cb-324922f18ecf" />
+
+<img width="509" height="1002" alt="image" src="https://github.com/user-attachments/assets/638c50d0-1b75-4c8b-9b41-4aaf9a80b087" />
 
 # ESP32 Climate Station + Web Dashboard
 
