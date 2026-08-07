@@ -1093,41 +1093,504 @@ void handleMinesweeper() {
 void handleClockPage() {
   String html = R"rawliteral(
 <!DOCTYPE html>
-<html>
+<html lang="ro">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32 Digital Clock</title>
-<style>
-  body { background: #000; color: #00ffcc; font-family: 'Courier New', monospace; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100vh; margin: 0; }
-  .clock-container { border: 2px solid #00ffcc; padding: 20px; border-radius: 20px; display: inline-block; margin: auto; box-shadow: 0 0 20px #00ffcc; }
-  #time { font-size: 60px; text-shadow: 0 0 20px #00ffcc; margin: 0; }
-  #date { font-size: 24px; color: #008877; margin-top: 10px; }
-  .btn-back { margin-top: 40px; padding: 15px 30px; background: transparent; border: 1px solid #008877; color: #008877; border-radius: 10px; cursor: pointer; font-size: 18px; text-decoration: none; display: inline-block; }
-  .btn-back:hover { background: #00ffcc; color: #000; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --led-red: #ff1a1a;
+            --led-orange: #ff8000;
+            --led-blue: #1a1aff;
+            --led-green: #00ff00;
+            --led-dim: #150505;
+            --led-cyanLight: #1affff;
+            --led-cyan: #00ffff;
+            --case-silver: linear-gradient(135deg, #f0f0f0 0%, #bebebe 45%, #888 50%, #bebebe 55%, #f0f0f0 100%);
+            --cell-w: 16px;
+            --cell-h: 4px;
+            --gap: 1px;
+        }
+
+        body { 
+            background: #050505; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; font-family: 'Arial Black', sans-serif;
+            padding: 20px 0;
+        }
+
+        .watch-case {
+            background: var(--case-silver);
+            padding: 45px;
+            border-radius: 30px 20px 30px 30px;
+            box-shadow: 25px 25px 50px rgba(0,0,0,0.9), inset -5px -5px 15px rgba(0,0,0,0.4);
+            position: relative;
+            border: 1px solid #fff;
+            transform: scale(0.9);
+        }
+
+        /* Ceas Digital Sus Pe Marginea Albă */
+        .top-digital-clock {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0a;
+            color: var(--led-cyan);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid #666;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 20px;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 5px #000, 0 0 8px rgba(0, 255, 255, 0.6);
+            z-index: 10;
+        }
+
+        .bezel {
+            background: #000;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: inset 8px 8px 20px rgba(0,0,0,1);
+            border: 3px solid #222;
+        }
+
+        /* Ceas Matrix */
+        .master-grid {
+            display: grid;
+            grid-template-columns: 35px calc((var(--cell-w) + var(--gap)) * 12);
+            align-items: end;
+            margin-bottom: 25px;
+        }
+
+        .y-axis {
+            display: grid;
+            grid-template-rows: repeat(60, calc(var(--cell-h) + var(--gap)));
+            text-align: right;
+            padding-right: 10px;
+            color: #fff;
+            font-size: 10px;
+        }
+
+        .y-axis span { height: var(--cell-h); display: flex; align-items: center; justify-content: flex-end; }
+
+        .screen {
+            display: grid;
+            grid-template-columns: repeat(12, var(--cell-w));
+            grid-template-rows: repeat(60, var(--cell-h));
+            gap: var(--gap);
+            background: #000;
+        }
+
+        .cell { background: var(--led-dim); border-radius: 1px; transition: background 0.1s; }
+        .cell.active-h { background: var(--led-red); box-shadow: 0 0 5px var(--led-red); }
+        .cell.active-m { background: var(--led-red); box-shadow: 0 0 5px var(--led-red); }
+        .cell.active-s { background: var(--led-green); box-shadow: 0 0 5px var(--led-green); opacity: 0.6; }
+        .cell.target { background: #fff !important; box-shadow: 0 0 15px #fff !important; z-index: 5; }
+
+        .x-axis {
+            grid-column: 2;
+            display: grid;
+            grid-template-columns: repeat(12, var(--cell-w));
+            gap: var(--gap);
+            padding-top: 15px;
+            color: #fff;
+            font-size: 11px;
+        }
+        .x-axis span { text-align: center; }
+
+        /* Calendar Navigație */
+        .calendar-container {
+            border-top: 2px solid #222;
+            padding-top: 15px;
+            color: #fff;
+        }
+
+        .cal-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .nav-btn {
+            background: #222;
+            color: var(--led-green);
+            border: 1px solid #444;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .nav-btn:hover { background: #333; }
+
+        .calendar-header {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: var(--led-cyan);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 30px repeat(7, calc(var(--cell-w) * 1.7));
+            gap: 4px;
+            text-align: center;
+        }
+        
+        .calendar-grid .day:nth-child(8n-1):not(.empty):not(.today) {
+            color: var(--led-orange);
+            border-color: rgba(26, 26, 255, 0.7);
+        }
+
+        .calendar-grid .day:nth-child(8n):not(.empty):not(.today) {
+            color: var(--led-red);
+            border-color: rgba(26, 26, 255, 0.7);
+        }
+
+        .cal-head { font-size:15px; color: #666; padding-bottom: 2px; }
+        .week-num { font-size: 18px; color: var(--led-blue); display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; opacity: 0.8; }
+        .day { 
+            font-size: 11px; 
+            background: #0a0a0a; 
+            padding: 4px 0; 
+            border-radius: 2px;
+            border: 1px solid #1a1a1a;
+        }
+        .day.today { 
+            background: var(--led-green); 
+            color: #000; 
+            box-shadow: 0 0 8px var(--led-green);
+            border-color: #fff;
+        }
+        .day.empty { background: transparent; border: none; }
+        
+        .day.holiday:not(.today) {
+            color: var(--led-cyanLight);
+            border-color: rgba(0, 255, 255, 0.4);
+            cursor: pointer;
+        }
+
+        .day.unofficial-holiday:not(.today) {
+            color: var(--led-green);
+            border-color: rgba(0, 255, 0, 0.4);
+            cursor: pointer;
+        }
+        
+        .day.holiday.today, .day.unofficial-holiday.today {
+            cursor: pointer;
+        }
+
+        /* Elemente Decorative */
+        .radar-btn {
+            position: absolute; right: 0px; top: 0px;
+            width: 50px; height: 50px;
+            background: radial-gradient(circle, #999, #333);
+            border-radius: 50%;
+            border: 4px solid #bbb;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .radar-light {
+            width: 28px; height: 28px;
+            background: #00ffff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #0ff;
+            border: 2px solid #050;
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.2; }
+            50% { opacity: 1.5; }
+            100% { opacity: 0.2; }
+        }
+
+        .scope-logo {
+            position: absolute; right: 15px; bottom: 0px;
+            font-size: 35px; color: rgba(0,0,0,0.4);
+            letter-spacing: 5px; font-style: italic;
+        }
+
+        .back-label {
+            position: absolute; top: 65px; right: 2px;
+            color: #444; font-size: 9px; width: 50px; text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div class="clock-container">
-    <div id="time">00:00:00</div>
-    <div id="date">Așteptare sincronizare...</div>
-    <a href="/" class="btn-back">ÎNAPOI LA SENZORI</a>
-  </div>
+
+<div class="watch-case">
+    <!-- Ceas Digital Adăugat Sus Pe Marginea Albă -->
+    <div class="top-digital-clock" id="topDigitalClock">00:00:00</div>
+
+    <a href="/" class="radar-btn">
+        <div class="radar-light"></div>
+    </a>
+    <div class="back-label">EXIT</div>
+    <div class="scope-logo">ESP32</div>
+
+    <div class="bezel">
+        <div class="master-grid">
+            <div class="y-axis" id="yLabels"></div>
+            <div class="screen" id="grid"></div>
+            <div class="x-axis">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="cal-nav">
+                <button class="nav-btn" onclick="changeMonth(-1)">&lt;</button>
+                <div class="calendar-header" id="monthName"></div>
+                <button class="nav-btn" onclick="changeMonth(1)">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <div class="cal-head">Wk</div>
+                <div class="cal-head">L</div><div class="cal-head">M</div><div class="cal-head">M</div>
+                <div class="cal-head">J</div><div class="cal-head">V</div><div class="cal-head">S</div>
+                <div class="cal-head">D</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-  function updateClock() {
-    const acum = new Date();
-    const h = String(acum.getHours()).padStart(2, '0');
-    const m = String(acum.getMinutes()).padStart(2, '0');
-    const s = String(acum.getSeconds()).padStart(2, '0');
-    const d = acum.toLocaleDateString('ro-RO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    
-    document.getElementById('time').textContent = h + ":" + m + ":" + s;
-    document.getElementById('date').textContent = d;
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
+    const grid = document.getElementById('grid');
+    const yLabels = document.getElementById('yLabels');
+    const topDigitalClock = document.getElementById('topDigitalClock');
+    let currentNavDate = new Date();
+
+    // Init Ceas
+    for (let i = 59; i >= 0; i--) {
+        const span = document.createElement('span');
+        if (i % 5 === 0) span.innerText = i.toString().padStart(2, '0');
+        yLabels.appendChild(span);
+    }
+
+    for (let i = 0; i < 720; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        grid.appendChild(cell);
+    }
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function getOrthodoxEaster(year) {
+        const a = year % 19;
+        const b = year % 4;
+        const c = year % 7;
+        const d = (19 * a + 15) % 30;
+        const e = (2 * b + 4 * c + 6 * d + 6) % 7;
+        let f = d + e;
+        
+        let month = 3; 
+        let day = f + 22 + 13;
+        
+        if (day > 31) {
+            day = day - 31;
+            month = 4; 
+            if (day > 30) {
+                day = day - 30;
+                month = 5; 
+            }
+        }
+        return new Date(year, month - 1, day);
+    }
+
+    function getHolidays(year) {
+        const holidays = {
+            "0-1": { name: "Anul Nou (1 Ianuarie)", type: "legal" }, 
+            "0-2": { name: "Anul Nou (2 Ianuarie)", type: "legal" },   
+            "0-6": { name: "Boboteaza (Botezul Domnului)", type: "legal" }, 
+            "0-7": { name: "Soborul Sfantului Ioan Botezatorul", type: "legal" },   
+            "0-24": { name: "Unirea Principatelor Romane", type: "legal" },         
+            "4-1": { name: "Ziua Muncii (1 Mai)", type: "legal" },          
+            "5-1": { name: "Ziua Copilului (1 Iunie)", type: "legal" },          
+            "7-15": { name: "Adormirea Maicii Domnului", type: "legal" },         
+            "10-30": { name: "Sfantul Apostol Andrei", type: "legal" },        
+            "11-1": { name: "Ziua Nationala a Romaniei", type: "legal" },         
+            "11-25": { name: "Craciunul (25 Decembrie)", type: "legal" }, 
+            "11-26": { name: "A doua zi de Craciun (26 Decembrie)", type: "legal" },
+
+            "0-30": { name: "Sfintii Trei Ierarhi (Vasile, Grigorie si Ioan)", type: "unofficial" },
+            "1-2": { name: "Intampinarea Domnului", type: "unofficial" },
+            "2-9": { name: "Sfintii 40 de Mucenici din Sevastia", type: "unofficial" },
+            "2-25": { name: "Bunavestire", type: "unofficial" },
+            "3-23": { name: "Sfantul Mare Mucenic Gheorghe", type: "unofficial" },
+            "4-21": { name: "Sfintii Imparati Constantin si Elena", type: "unofficial" },
+            "5-24": { name: "Nasterea Sfantului Ioan Botezatorul (Sanzienele)", type: "unofficial" },
+            "5-29": { name: "Sfintii Apostoli Petru si Pavel", type: "unofficial" },
+            "6-20": { name: "Sfantul Ilie Tesviteanul", type: "unofficial" },
+            "7-6": { name: "Schimbarea la Fata a Domnului", type: "unofficial" },
+            "7-29": { name: "Taierea Capului Sfantului Ioan Botezatorul", type: "unofficial" },
+            "8-8": { name: "Nasterea Maicii Domnului (Sfanta Maria Mica)", type: "unofficial" },
+            "8-14": { name: "Inaltarea Sfintei Cruci", type: "unofficial" },
+            "9-14": { name: "Sfanta Cuvioasa Parascheva de la Iasi", type: "unofficial" },
+            "9-26": { name: "Sfantul Mare Mucenic Dumitru", type: "unofficial" },
+            "10-8": { name: "Soborul Sfintilor Arhangheli Mihail si Gavriil", type: "unofficial" },
+            "11-6": { name: "Sfantul Ierarh Nicolae", type: "unofficial" }
+        };
+
+        const easter = getOrthodoxEaster(year);
+        
+        const goodFriday = new Date(easter);
+        goodFriday.setDate(easter.getDate() - 2);
+        holidays[`${goodFriday.getMonth()}-${goodFriday.getDate()}`] = { name: "Vinerea Mare", type: "legal" };
+        
+        holidays[`${easter.getMonth()}-${easter.getDate()}`] = { name: "Prima zi de Paste Ortodox", type: "legal" };
+        const easterMonday = new Date(easter);
+        easterMonday.setDate(easter.getDate() + 1);
+        holidays[`${easterMonday.getMonth()}-${easterMonday.getDate()}`] = { name: "A doua zi de Paste Ortodox", type: "legal" };
+        
+        const rusaliiDuminica = new Date(easter);
+        rusaliiDuminica.setDate(easter.getDate() + 49);
+        holidays[`${rusaliiDuminica.getMonth()}-${rusaliiDuminica.getDate()}`] = { name: "Prima zi de Rusalii", type: "legal" };
+        
+        const rusaliiLuni = new Date(easter);
+        rusaliiLuni.setDate(easter.getDate() + 50);
+        holidays[`${rusaliiLuni.getMonth()}-${rusaliiLuni.getDate()}`] = { name: "A doua zi de Rusalii", type: "legal" };
+
+        const florii = new Date(easter);
+        florii.setDate(easter.getDate() - 7);
+        holidays[`${florii.getMonth()}-${florii.getDate()}`] = { name: "Intrarea Domnului in Ierusalim (Floriile)", type: "unofficial" };
+
+        const inaltarea = new Date(easter);
+        inaltarea.setDate(easter.getDate() + 39);
+        holidays[`${inaltarea.getMonth()}-${inaltarea.getDate()}`] = { name: "Inaltarea Domnului (Ispas)", type: "unofficial" };
+
+        return holidays;
+    }
+
+    function changeMonth(step) {
+        currentNavDate.setMonth(currentNavDate.getMonth() + step);
+        updateCalendar();
+    }
+
+    function updateCalendar() {
+        const today = new Date();
+        const monthNames = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
+        
+        document.getElementById('monthName').innerText = `${monthNames[currentNavDate.getMonth()]} ${currentNavDate.getFullYear()}`;
+
+        const firstDay = new Date(currentNavDate.getFullYear(), currentNavDate.getMonth(), 1);
+        const lastDay = new Date(currentNavDate.getFullYear(), currentNavDate.getMonth() + 1, 0);
+        
+        let startDay = firstDay.getDay() - 1;
+        if (startDay === -1) startDay = 6;
+
+        const gridCont = document.getElementById('calendarGrid');
+        const headers = ["Wk", "L", "M", "M", "J", "V", "S", "D"];
+        
+        gridCont.innerHTML = '';
+        headers.forEach(h => {
+            const d = document.createElement('div');
+            d.className = 'cal-head';
+            d.innerText = h;
+            gridCont.appendChild(d);
+        });
+
+        const currentYearHolidays = getHolidays(currentNavDate.getFullYear());
+
+        let currentDay = 1;
+        for (let i = 0; i < 6; i++) {
+            let weekDate = new Date(currentNavDate.getFullYear(), currentNavDate.getMonth(), currentDay);
+            if (currentDay > lastDay.getDate()) break;
+
+            const wkDiv = document.createElement('div');
+            wkDiv.className = 'week-num';
+            wkDiv.innerText = getWeekNumber(weekDate);
+            gridCont.appendChild(wkDiv);
+
+            for (let j = 0; j < 7; j++) {
+                const dayDiv = document.createElement('div');
+                if (i === 0 && j < startDay || currentDay > lastDay.getDate()) {
+                    dayDiv.className = 'day empty';
+                } else {
+                    dayDiv.className = 'day';
+                    dayDiv.innerText = currentDay;
+                    
+                    const dateKey = `${currentNavDate.getMonth()}-${currentDay}`;
+                    
+                    if (currentYearHolidays[dateKey]) {
+                        const holiday = currentYearHolidays[dateKey];
+                        
+                        if (holiday.type === "legal") {
+                            dayDiv.classList.add('holiday');
+                        } else if (holiday.type === "unofficial") {
+                            dayDiv.classList.add('unofficial-holiday');
+                        }
+                        
+                        const holidayName = holiday.name;
+                        const holidayYear = currentNavDate.getFullYear();
+                        
+                        dayDiv.title = `Sărbătoare: ${holidayName}`;
+                        
+                        dayDiv.onclick = function() {
+                            const searchQuery = encodeURIComponent(`${holidayName} ${holidayYear} Romania`);
+                            window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+                        };
+                    }
+
+                    if (currentDay === today.getDate() && 
+                        currentNavDate.getMonth() === today.getMonth() && 
+                        currentNavDate.getFullYear() === today.getFullYear()) {
+                        dayDiv.classList.add('today');
+                    }
+                    currentDay++;
+                }
+                gridCont.appendChild(dayDiv);
+            }
+        }
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const rawH = now.getHours();
+        const rawM = now.getMinutes();
+        const rawS = now.getSeconds();
+
+        // Actualizare ceas digital sus (Format 24h: HH:MM:SS)
+        const formatH = rawH.toString().padStart(2, '0');
+        const formatM = rawM.toString().padStart(2, '0');
+        const formatS = rawS.toString().padStart(2, '0');
+        topDigitalClock.innerText = `${formatH}:${formatM}:${formatS}`;
+
+        // Actualizare matrice
+        const h = rawH % 12 || 12;
+        const m = rawM;
+        const s = rawS;
+        const cells = document.querySelectorAll('.cell');
+
+        cells.forEach(c => { c.className = 'cell'; });
+
+        const hourCol = h - 1;
+        const minRow = 59 - m;
+        const secRow = 59 - s;
+
+        for (let c = 0; c < 12; c++) { cells[secRow * 12 + c].classList.add('active-s'); }
+        for (let r = 0; r < 60; r++) { cells[r * 12 + hourCol].classList.add('active-h'); }
+        for (let c = 0; c < 12; c++) { cells[minRow * 12 + c].classList.add('active-m'); }
+        cells[minRow * 12 + hourCol].classList.add('target');
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+    updateCalendar();
 </script>
+
 </body>
 </html>
 )rawliteral";
