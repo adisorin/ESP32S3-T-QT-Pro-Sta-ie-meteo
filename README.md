@@ -25,6 +25,8 @@ Fără internet și oră.
 
 <img width="506" height="1004" alt="image" src="https://github.com/user-attachments/assets/af52f093-8db3-4c4b-93e5-7b12e7befd53" />
 
+<img width="503" height="737" alt="{F7DB27FF-DC77-4480-BB6C-03BF42E8C3A4}" src="https://github.com/user-attachments/assets/69f0021b-5323-4865-a246-a0cd01bf29ae" />
+
 <img width="508" height="1007" alt="image" src="https://github.com/user-attachments/assets/30112b5a-9f4a-4869-aa9e-038413efbaf4" />
 
 <img width="509" height="1008" alt="image" src="https://github.com/user-attachments/assets/9b6b0797-cbe9-418b-88cb-324922f18ecf" />
